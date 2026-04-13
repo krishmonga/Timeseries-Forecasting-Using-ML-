@@ -6,4 +6,7 @@ statsmodels
 xgboost
 prophet
 tensorflow
+joblib
+pmdarima
+streamlit
 

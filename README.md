@@ -75,7 +75,48 @@ python forecast_2026.py --actual-2026-csv "path\to\actual_2026.csv"
 
 Expected columns in actual CSV: `Date`, `Weekly_Sales`.
 
-## 5) Outputs
+## 5) Production Pipeline (2026+ Ready)
+
+### Train or retrain with optional new data
+
+```bash
+python run_production_pipeline.py --retrain --horizons "30,60,90"
+```
+
+### Use existing saved models only
+
+```bash
+python run_production_pipeline.py --use-existing-model --horizons "30,60,90"
+```
+
+### Append new rows and retrain
+
+```bash
+python run_production_pipeline.py --append-csv "path\to\new_rows.csv" --retrain
+```
+
+Production outputs are written to `outputs/production/`:
+
+- `actual_vs_predicted.csv`
+- `model_comparison_production.csv`
+- `future_predictions_all_models.csv`
+- `future_predictions_best_model.csv`
+- `metadata.json` (diagnostics + retraining policy + selected model)
+
+### Streamlit App
+
+```bash
+streamlit run streamlit_app.py
+```
+
+App features:
+
+- Upload full dataset or append rows
+- Choose `Use existing trained model` or `Retrain model`
+- Predict next 30/60/90 days
+- View model comparison + future predictions instantly
+
+## 6) Outputs
 
 After running, check:
 
@@ -85,7 +126,7 @@ After running, check:
 - `outputs/plots/02_cleaned_series.png`
 - `outputs/plots/03_model_forecasts.png`
 
-## 6) How to Interpret Model Choice
+## 7) How to Interpret Model Choice
 
 - **Naive / Moving Average**
   - Best when you need fast baselines and sanity checks
@@ -115,16 +156,21 @@ After running, check:
   - Helpful when one model captures trend while residuals keep autocorrelation
   - More moving parts; harder to debug and maintain
 
-## 7) Hyperparameter Tuning
+## 8) Hyperparameter Tuning
 
-- Random Forest uses `GridSearchCV` with `TimeSeriesSplit`.
-- You can extend tuning with Optuna for XGBoost or deep models.
+- XGBoost uses `RandomizedSearchCV` with `TimeSeriesSplit`.
+- LSTM tuning searches combinations of lookback, epochs, units, and layer depth.
+- ARIMA/SARIMA are tuned using `auto_arima`.
+- Holt-Winters seasonal period is selected from candidates and evaluated.
 
-## 8) Production Notes
+## 9) Production Notes
 
 - Keep time-based split strict (never random split for forecasting).
 - Retrain on rolling windows for non-stationary behavior.
 - Track metrics by horizon (1-step, 4-step, 12-step) for better reliability checks.
 - Add experiment tracking (MLflow/W&B) if this moves to team production.
+- The pipeline stores model artifacts and can reload them without retraining.
+- Best model is selected automatically by lowest MAPE, then RMSE.
+- If both LSTM and XGBoost are strong, an ensemble (`0.6*LSTM + 0.4*XGB`) is evaluated.
 
 # Timeseries-Forecasting-Using-ML-
