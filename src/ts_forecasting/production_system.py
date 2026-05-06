@@ -53,6 +53,13 @@ def prepare_series(
     freq: str | None = None,
 ) -> pd.Series:
     data = frame.copy()
+    
+    # Validate and find required columns
+    if date_col not in data.columns:
+        raise ValueError(f"Date column '{date_col}' not found in DataFrame. Available columns: {list(data.columns)}")
+    if target_col not in data.columns:
+        raise ValueError(f"Target column '{target_col}' not found in DataFrame. Available columns: {list(data.columns)}")
+    
     data[date_col] = pd.to_datetime(data[date_col], errors="coerce")
     data = data.dropna(subset=[date_col, target_col])
     grouped = data.groupby(date_col, as_index=True)[target_col].sum().sort_index().astype(float)
